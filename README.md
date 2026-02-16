@@ -49,11 +49,27 @@ docker compose up --build
 # 2. Copie e configure o .env
 cp .env.example .env
 
-# 3. Instale dependências
-go mod tidy
+# 3. Instale dependências e execute
+make deps
+make run
+```
 
-# 4. Execute
-go run cmd/api/main.go
+### Makefile
+
+O projeto inclui um `Makefile` com os principais comandos. Execute `make help` para ver todos:
+
+```bash
+make run            # Executa a aplicação localmente
+make build          # Compila o binário
+make test           # Executa todos os testes
+make test-verbose   # Testes com output detalhado
+make test-cover     # Testes com relatório de cobertura
+make swagger        # Gera/atualiza documentação Swagger
+make docker-up      # Sobe containers (PostgreSQL + API)
+make docker-down    # Para os containers
+make docker-logs    # Exibe logs dos containers
+make deps           # Instala dependências
+make clean          # Remove artefatos de build
 ```
 
 ## 📖 Documentação da API (Swagger)
