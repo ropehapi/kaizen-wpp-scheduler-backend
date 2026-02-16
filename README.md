@@ -9,20 +9,21 @@ Backend em Go para gerenciamento de agendamentos de envio de mensagens em lote p
 O projeto segue uma **Clean Architecture simplificada** com separação clara de responsabilidades:
 
 ```
-├── cmd/api/              # Ponto de entrada da aplicação
-├── internal/
-│   ├── domain/           # Modelos de domínio e DTOs
-│   ├── repository/       # Acesso ao banco de dados (GORM)
-│   ├── service/          # Regras de negócio
-│   └── handler/          # Controllers HTTP e rotas
-├── pkg/
-│   ├── config/           # Configuração da aplicação
-│   ├── database/         # Conexão com PostgreSQL
-│   ├── middleware/        # CORS e logging
-│   └── response/         # Respostas padronizadas
-├── Dockerfile
-├── docker-compose.yml
-└── .env
+cmd/api/              # Ponto de entrada da aplicação
+docs/                 # Documentação OpenAPI gerada (Swagger)
+internal/
+  domain/             # Modelos de domínio e DTOs
+  repository/         # Acesso ao banco de dados (GORM)
+  service/            # Regras de negócio
+  handler/            # Controllers HTTP e rotas
+pkg/
+  config/             # Configuração da aplicação
+  database/           # Conexão com PostgreSQL
+  middleware/          # CORS e logging
+  response/           # Respostas padronizadas
+Dockerfile
+docker-compose.yml
+.env
 ```
 
 ## 🚀 Como Rodar
@@ -55,11 +56,34 @@ go mod tidy
 go run cmd/api/main.go
 ```
 
+## 📖 Documentação da API (Swagger)
+
+A documentação interativa da API está disponível via Swagger UI. Com a aplicação rodando, acesse:
+
+```
+http://localhost:8080/swagger/index.html
+```
+
+A especificação OpenAPI é gerada automaticamente a partir das anotações no código-fonte usando [swaggo/swag](https://github.com/swaggo/swag).
+
+### Regenerar a documentação
+
+Após alterar as anotações nos handlers, regenere os arquivos de documentação:
+
+```bash
+# Instale o swag CLI (se ainda não tiver)
+go install github.com/swaggo/swag/cmd/swag@latest
+
+# Gere a documentação
+swag init -g cmd/api/main.go --parseDependency --parseInternal
+```
+
 ## 📡 Endpoints
 
 | Método | Endpoint                       | Descrição              |
 |--------|--------------------------------|------------------------|
 | GET    | `/health`                      | Healthcheck            |
+| GET    | `/swagger/*`                   | Documentação Swagger   |
 | POST   | `/api/v1/schedules`            | Criar agendamento      |
 | GET    | `/api/v1/schedules`            | Listar agendamentos    |
 | GET    | `/api/v1/schedules/:id`        | Buscar por ID          |
@@ -106,3 +130,4 @@ go test ./... -v
 - **PostgreSQL** - Banco de dados
 - **UUID** - Identificadores primários
 - **Testify** - Testes e mocks
+- **Swaggo** - Documentação OpenAPI/Swagger

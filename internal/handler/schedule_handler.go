@@ -26,12 +26,15 @@ func NewScheduleHandler(svc service.ScheduleService) *ScheduleHandler {
 
 // CreateSchedule godoc
 // @Summary Cria um novo agendamento
-// @Description Cria um agendamento com mensagem, contatos, tipo e data
+// @Description Cria um agendamento com mensagem, contatos, tipo e data programada.
+// @Description Se o tipo for "recurring", o campo "frequency" é obrigatório (daily, weekly, monthly).
+// @Tags Agendamentos
 // @Accept json
 // @Produce json
 // @Param schedule body domain.CreateScheduleRequest true "Dados do agendamento"
-// @Success 201 {object} response.APIResponse
+// @Success 201 {object} response.APIResponse{data=domain.Schedule}
 // @Failure 400 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
 // @Router /api/v1/schedules [post]
 func (h *ScheduleHandler) CreateSchedule(c *gin.Context) {
 	var req domain.CreateScheduleRequest
@@ -53,12 +56,16 @@ func (h *ScheduleHandler) CreateSchedule(c *gin.Context) {
 
 // ListSchedules godoc
 // @Summary Lista agendamentos
-// @Description Retorna agendamentos com filtros e paginação
+// @Description Retorna agendamentos com suporte a filtros por status e paginação.
+// @Description Valores padrão: page=1, limit=10. Limite máximo: 100.
+// @Tags Agendamentos
 // @Produce json
-// @Param status query string false "Filtro por status"
-// @Param page query int false "Página"
-// @Param limit query int false "Limite por página"
-// @Success 200 {object} response.PaginatedResponse
+// @Param status query string false "Filtro por status (scheduled, sent, canceled)"
+// @Param page query int false "Número da página (padrão: 1)"
+// @Param limit query int false "Itens por página (padrão: 10, máx: 100)"
+// @Success 200 {object} response.PaginatedResponse{data=[]domain.Schedule}
+// @Failure 400 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
 // @Router /api/v1/schedules [get]
 func (h *ScheduleHandler) ListSchedules(c *gin.Context) {
 	filter := domain.ScheduleFilter{}
@@ -124,11 +131,14 @@ func (h *ScheduleHandler) ListSchedules(c *gin.Context) {
 
 // GetScheduleByID godoc
 // @Summary Busca agendamento por ID
-// @Description Retorna um agendamento específico pelo UUID
+// @Description Retorna um agendamento específico pelo UUID, incluindo seus contatos associados.
+// @Tags Agendamentos
 // @Produce json
-// @Param id path string true "ID do agendamento"
-// @Success 200 {object} response.APIResponse
+// @Param id path string true "UUID do agendamento"
+// @Success 200 {object} response.APIResponse{data=domain.Schedule}
+// @Failure 400 {object} response.APIResponse
 // @Failure 404 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
 // @Router /api/v1/schedules/{id} [get]
 func (h *ScheduleHandler) GetScheduleByID(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
@@ -148,13 +158,18 @@ func (h *ScheduleHandler) GetScheduleByID(c *gin.Context) {
 
 // UpdateSchedule godoc
 // @Summary Atualiza um agendamento
-// @Description Atualiza campos de um agendamento existente
+// @Description Atualiza campos de um agendamento existente. Todos os campos são opcionais.
+// @Description Não é possível atualizar agendamentos com status "sent".
+// @Tags Agendamentos
 // @Accept json
 // @Produce json
-// @Param id path string true "ID do agendamento"
-// @Param schedule body domain.UpdateScheduleRequest true "Dados para atualização"
-// @Success 200 {object} response.APIResponse
-// @Failure 400,404 {object} response.APIResponse
+// @Param id path string true "UUID do agendamento"
+// @Param schedule body domain.UpdateScheduleRequest true "Dados para atualização (campos opcionais)"
+// @Success 200 {object} response.APIResponse{data=domain.Schedule}
+// @Failure 400 {object} response.APIResponse
+// @Failure 404 {object} response.APIResponse
+// @Failure 409 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
 // @Router /api/v1/schedules/{id} [put]
 func (h *ScheduleHandler) UpdateSchedule(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
@@ -180,11 +195,16 @@ func (h *ScheduleHandler) UpdateSchedule(c *gin.Context) {
 
 // CancelSchedule godoc
 // @Summary Cancela um agendamento
-// @Description Altera o status de um agendamento para "canceled"
+// @Description Altera o status de um agendamento para "canceled".
+// @Description Não é possível cancelar agendamentos já enviados ou já cancelados.
+// @Tags Agendamentos
 // @Produce json
-// @Param id path string true "ID do agendamento"
-// @Success 200 {object} response.APIResponse
-// @Failure 400,404 {object} response.APIResponse
+// @Param id path string true "UUID do agendamento"
+// @Success 200 {object} response.APIResponse{data=domain.Schedule}
+// @Failure 400 {object} response.APIResponse
+// @Failure 404 {object} response.APIResponse
+// @Failure 409 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
 // @Router /api/v1/schedules/{id}/cancel [patch]
 func (h *ScheduleHandler) CancelSchedule(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))

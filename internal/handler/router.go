@@ -6,6 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
 	"github.com/ropehapi/kaizen-wpp-scheduler-backend/pkg/middleware"
 	"github.com/ropehapi/kaizen-wpp-scheduler-backend/pkg/response"
 )
@@ -26,6 +29,9 @@ func SetupRouter(scheduleHandler *ScheduleHandler, corsOrigins string) *gin.Engi
 			"status": "ok",
 		})
 	})
+
+	// Swagger documentation endpoint
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API v1 routes
 	v1 := router.Group("/api/v1")

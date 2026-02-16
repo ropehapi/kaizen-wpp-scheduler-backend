@@ -1,0 +1,365 @@
+basePath: /api/v1
+definitions:
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Contact:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      scheduleId:
+        type: string
+    type: object
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.CreateContactRequest:
+    properties:
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - name
+    - phone
+    type: object
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.CreateScheduleRequest:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.CreateContactRequest'
+        minItems: 1
+        type: array
+      frequency:
+        $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Frequency'
+      message:
+        type: string
+      scheduledAt:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.ScheduleType'
+        enum:
+        - once
+        - recurring
+    required:
+    - contacts
+    - message
+    - scheduledAt
+    - type
+    type: object
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Frequency:
+    enum:
+    - daily
+    - weekly
+    - monthly
+    type: string
+    x-enum-varnames:
+    - FrequencyDaily
+    - FrequencyWeekly
+    - FrequencyMonthly
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Schedule:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Contact'
+        type: array
+      createdAt:
+        type: string
+      frequency:
+        $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Frequency'
+      id:
+        type: string
+      message:
+        type: string
+      scheduledAt:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.ScheduleStatus'
+      type:
+        $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.ScheduleType'
+      updatedAt:
+        type: string
+    type: object
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.ScheduleStatus:
+    enum:
+    - scheduled
+    - sent
+    - canceled
+    type: string
+    x-enum-varnames:
+    - ScheduleStatusScheduled
+    - ScheduleStatusSent
+    - ScheduleStatusCanceled
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.ScheduleType:
+    enum:
+    - once
+    - recurring
+    type: string
+    x-enum-varnames:
+    - ScheduleTypeOnce
+    - ScheduleTypeRecurring
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.UpdateScheduleRequest:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.CreateContactRequest'
+        minItems: 1
+        type: array
+      frequency:
+        $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Frequency'
+      message:
+        type: string
+      scheduledAt:
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.ScheduleType'
+        enum:
+        - once
+        - recurring
+    type: object
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+    type: object
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.PaginatedResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      pagination:
+        $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.PaginationInfo'
+    type: object
+  github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.PaginationInfo:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: Suporte WPP Scheduler
+    url: https://github.com/ropehapi/kaizen-wpp-scheduler-backend
+  description: |-
+    API para gerenciamento de agendamentos de envio de mensagens em lote para WhatsApp.
+    Este backend apenas armazena e gerencia agendamentos via API REST — não envia mensagens.
+  title: WPP Scheduler API
+  version: "1.0"
+paths:
+  /api/v1/schedules:
+    get:
+      description: |-
+        Retorna agendamentos com suporte a filtros por status e paginação.
+        Valores padrão: page=1, limit=10. Limite máximo: 100.
+      parameters:
+      - description: Filtro por status (scheduled, sent, canceled)
+        in: query
+        name: status
+        type: string
+      - description: 'Número da página (padrão: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Itens por página (padrão: 10, máx: 100)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Schedule'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+      summary: Lista agendamentos
+      tags:
+      - Agendamentos
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Cria um agendamento com mensagem, contatos, tipo e data programada.
+        Se o tipo for "recurring", o campo "frequency" é obrigatório (daily, weekly, monthly).
+      parameters:
+      - description: Dados do agendamento
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.CreateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Schedule'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+      summary: Cria um novo agendamento
+      tags:
+      - Agendamentos
+  /api/v1/schedules/{id}:
+    get:
+      description: Retorna um agendamento específico pelo UUID, incluindo seus contatos
+        associados.
+      parameters:
+      - description: UUID do agendamento
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Schedule'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+      summary: Busca agendamento por ID
+      tags:
+      - Agendamentos
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Atualiza campos de um agendamento existente. Todos os campos são opcionais.
+        Não é possível atualizar agendamentos com status "sent".
+      parameters:
+      - description: UUID do agendamento
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados para atualização (campos opcionais)
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.UpdateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Schedule'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+      summary: Atualiza um agendamento
+      tags:
+      - Agendamentos
+  /api/v1/schedules/{id}/cancel:
+    patch:
+      description: |-
+        Altera o status de um agendamento para "canceled".
+        Não é possível cancelar agendamentos já enviados ou já cancelados.
+      parameters:
+      - description: UUID do agendamento
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_internal_domain.Schedule'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_ropehapi_kaizen-wpp-scheduler-backend_pkg_response.APIResponse'
+      summary: Cancela um agendamento
+      tags:
+      - Agendamentos
+schemes:
+- http
+swagger: "2.0"
