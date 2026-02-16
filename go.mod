@@ -1,3 +1,3 @@
-module github.com/ropehapi/wpp-scheduler-backend
+module github.com/ropehapi/kaizen-wpp-scheduler-backend
 
 go 1.24.2
